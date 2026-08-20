@@ -9,7 +9,7 @@ type ShopRow = {
   shops: {
     id: number;
     name: string;
-  } | null;
+  }[];
 };
 
 type CurrentShop = {
@@ -200,7 +200,7 @@ export default async function Home() {
   const latestByShop = new Map<number, CurrentShop>();
 
   for (const row of (data ?? []) as ShopRow[]) {
-    const shop = row.shops;
+    const shop = row.shops?.[0];
 
     if (!shop || latestByShop.has(shop.id)) {
       continue;
@@ -243,7 +243,6 @@ export default async function Home() {
       }}
     >
       <div className="mx-auto w-full max-w-[1360px] px-6 pb-10 pt-8 sm:px-9 lg:px-14 xl:px-16">
-
         <header className="flex items-start justify-between gap-8">
           <a href="#" className="flex items-start gap-5">
             <AmericanoDrawing className="h-[115px] w-[88px] shrink-0 text-[#dcc19d]" />
