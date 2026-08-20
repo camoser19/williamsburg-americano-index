@@ -10,8 +10,10 @@ export default function AdminLoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [submitting, setSubmitting] = useState(false);
   const [resetting, setResetting] = useState(false);
+
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<
     "error" | "success" | ""
@@ -25,15 +27,17 @@ export default function AdminLoginPage() {
     setMessageType("");
 
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.trim(),
       password,
     });
 
     if (error) {
       console.error(error);
+
       setMessage(error.message);
       setMessageType("error");
       setSubmitting(false);
+
       return;
     }
 
@@ -45,7 +49,9 @@ export default function AdminLoginPage() {
     setMessage("");
     setMessageType("");
 
-    if (!email.trim()) {
+    const cleanEmail = email.trim();
+
+    if (!cleanEmail) {
       setMessage("Enter your email address first.");
       setMessageType("error");
       return;
@@ -53,18 +59,22 @@ export default function AdminLoginPage() {
 
     setResetting(true);
 
+    const redirectTo = `${window.location.origin}/admin/reset-password`;
+
     const { error } = await supabase.auth.resetPasswordForEmail(
-      email.trim(),
+      cleanEmail,
       {
-        redirectTo: "http://localhost:3000/admin/reset-password",
+        redirectTo,
       }
     );
 
     if (error) {
       console.error(error);
+
       setMessage(error.message);
       setMessageType("error");
       setResetting(false);
+
       return;
     }
 
@@ -162,7 +172,7 @@ export default function AdminLoginPage() {
 
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || resetting}
                 className="rounded-lg border border-[#a86934] bg-[#28170d] px-6 py-4 text-sm font-bold uppercase tracking-[0.16em] text-[#e5b980] transition hover:-translate-y-1 hover:border-[#d38a43] hover:bg-[#341d10] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting ? "Signing in..." : "Sign In"}
@@ -171,10 +181,12 @@ export default function AdminLoginPage() {
               <button
                 type="button"
                 onClick={handlePasswordReset}
-                disabled={resetting}
+                disabled={submitting || resetting}
                 className="text-sm text-[#b77a45] transition hover:text-[#e5b27c] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {resetting ? "Sending reset email..." : "Forgot password?"}
+                {resetting
+                  ? "Sending reset email..."
+                  : "Forgot password?"}
               </button>
             </div>
           </form>
