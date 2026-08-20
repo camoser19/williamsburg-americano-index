@@ -1,15 +1,17 @@
 import { supabase } from "@/lib/supabase";
 
+type RelatedShop = {
+  id: number;
+  name: string;
+};
+
 type ShopRow = {
   id: number;
   price: number | string;
   tax_status: string | null;
   observed_date: string | null;
   created_at: string;
-  shops: {
-    id: number;
-    name: string;
-  }[];
+  shops: RelatedShop | RelatedShop[] | null;
 };
 
 type CurrentShop = {
@@ -110,7 +112,12 @@ function AmericanoDrawing({
 
 function TrendIcon() {
   return (
-    <svg viewBox="0 0 32 32" className="h-6 w-6" fill="none">
+    <svg
+      viewBox="0 0 32 32"
+      className="h-6 w-6"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="m6 22 6-7 5 4 8-10"
         stroke="currentColor"
@@ -131,7 +138,12 @@ function TrendIcon() {
 
 function TagIcon() {
   return (
-    <svg viewBox="0 0 32 32" className="h-6 w-6" fill="none">
+    <svg
+      viewBox="0 0 32 32"
+      className="h-6 w-6"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="M6 9v9l9 9 11-11-9-9H8a2 2 0 0 0-2 2Z"
         stroke="currentColor"
@@ -151,7 +163,12 @@ function TagIcon() {
 
 function StarIcon() {
   return (
-    <svg viewBox="0 0 32 32" className="h-6 w-6" fill="none">
+    <svg
+      viewBox="0 0 32 32"
+      className="h-6 w-6"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="m16 5 3.2 6.6 7.3 1-5.3 5.1 1.3 7.3-6.5-3.4L9.5 25l1.3-7.3-5.3-5.1 7.3-1L16 5Z"
         stroke="currentColor"
@@ -170,6 +187,20 @@ function formatObservedDate(date: string | null) {
     day: "numeric",
     year: "numeric",
   });
+}
+
+function getRelatedShop(
+  value: RelatedShop | RelatedShop[] | null
+): RelatedShop | null {
+  if (!value) {
+    return null;
+  }
+
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value;
 }
 
 export default async function Home() {
@@ -191,18 +222,25 @@ export default async function Home() {
       ascending: false,
       nullsFirst: false,
     })
-    .order("created_at", { ascending: false });
+    .order("created_at", {
+      ascending: false,
+    });
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(`Unable to load price data: ${error.message}`);
   }
 
+  const rows = (data ?? []) as unknown as ShopRow[];
   const latestByShop = new Map<number, CurrentShop>();
 
-  for (const row of (data ?? []) as ShopRow[]) {
-    const shop = row.shops?.[0];
+  for (const row of rows) {
+    const shop = getRelatedShop(row.shops);
 
-    if (!shop || latestByShop.has(shop.id)) {
+    if (!shop) {
+      continue;
+    }
+
+    if (latestByShop.has(shop.id)) {
       continue;
     }
 
@@ -221,15 +259,22 @@ export default async function Home() {
   }
 
   const shops = Array.from(latestByShop.values());
-  const sortedShops = [...shops].sort((a, b) => a.price - b.price);
+
+  const sortedShops = [...shops].sort(
+    (a, b) => a.price - b.price
+  );
 
   const average =
     shops.length > 0
-      ? shops.reduce((sum, shop) => sum + shop.price, 0) / shops.length
+      ? shops.reduce(
+          (sum, shop) => sum + shop.price,
+          0
+        ) / shops.length
       : 0;
 
   const cheapest = sortedShops[0];
-  const mostExpensive = sortedShops[sortedShops.length - 1];
+  const mostExpensive =
+    sortedShops[sortedShops.length - 1];
 
   return (
     <main
@@ -243,8 +288,12 @@ export default async function Home() {
       }}
     >
       <div className="mx-auto w-full max-w-[1360px] px-6 pb-10 pt-8 sm:px-9 lg:px-14 xl:px-16">
+
         <header className="flex items-start justify-between gap-8">
-          <a href="#" className="flex items-start gap-5">
+          <a
+            href="#"
+            className="flex items-start gap-5"
+          >
             <AmericanoDrawing className="h-[115px] w-[88px] shrink-0 text-[#dcc19d]" />
 
             <div className="pt-2">
@@ -299,7 +348,8 @@ export default async function Home() {
             <h1
               className="max-w-[680px] text-[58px] leading-[0.94] tracking-[-0.035em] text-[#ead6bb] sm:text-[72px] lg:text-[76px]"
               style={{
-                fontFamily: 'Georgia, "Times New Roman", serif',
+                fontFamily:
+                  'Georgia, "Times New Roman", serif',
               }}
             >
               Iced Americano
@@ -309,7 +359,8 @@ export default async function Home() {
 
             <p className="mt-6 max-w-[560px] text-[20px] leading-[1.55] text-[#ccb18d]">
               Tracking the price of an iced Americano
-              <br className="hidden sm:block" /> across the neighborhood.
+              <br className="hidden sm:block" /> across
+              the neighborhood.
             </p>
           </div>
 
@@ -335,12 +386,14 @@ export default async function Home() {
               <div className="text-[17px] leading-[1.65] text-[#cdb18d]">
                 <p>
                   Espresso shots diluted with cold water
-                  <br className="hidden xl:block" /> and poured over ice.
+                  <br className="hidden xl:block" /> and
+                  poured over ice.
                 </p>
 
                 <p className="mt-2">
                   No milk. No foam. Just coffee,
-                  <br className="hidden xl:block" /> water, and ice.
+                  <br className="hidden xl:block" /> water,
+                  and ice.
                 </p>
               </div>
             </div>
@@ -349,6 +402,7 @@ export default async function Home() {
 
         {cheapest && mostExpensive && (
           <section className="mt-10 grid gap-5 md:grid-cols-3">
+
             <div
               className="
                 group relative rounded-[15px] border border-[#76502d]
@@ -374,7 +428,8 @@ export default async function Home() {
               <p
                 className="mt-2 text-[58px] leading-none tracking-[-0.035em] text-[#ead4b5]"
                 style={{
-                  fontFamily: 'Georgia, "Times New Roman", serif',
+                  fontFamily:
+                    'Georgia, "Times New Roman", serif',
                 }}
               >
                 ${average.toFixed(2)}
@@ -410,7 +465,8 @@ export default async function Home() {
               <p
                 className="mt-2 text-[58px] leading-none tracking-[-0.035em] text-[#ead4b5]"
                 style={{
-                  fontFamily: 'Georgia, "Times New Roman", serif',
+                  fontFamily:
+                    'Georgia, "Times New Roman", serif',
                 }}
               >
                 ${cheapest.price.toFixed(2)}
@@ -446,7 +502,8 @@ export default async function Home() {
               <p
                 className="mt-2 text-[58px] leading-none tracking-[-0.035em] text-[#ead4b5]"
                 style={{
-                  fontFamily: 'Georgia, "Times New Roman", serif',
+                  fontFamily:
+                    'Georgia, "Times New Roman", serif',
                 }}
               >
                 ${mostExpensive.price.toFixed(2)}
@@ -482,6 +539,7 @@ export default async function Home() {
                 viewBox="0 0 28 28"
                 className="h-6 w-6"
                 fill="none"
+                aria-hidden="true"
               >
                 <ellipse
                   cx="14"
@@ -507,11 +565,14 @@ export default async function Home() {
             <div className="grid grid-cols-[68px_minmax(0,1fr)_150px] border-b border-[#34271d] px-7 py-4 text-[12px] font-semibold uppercase tracking-[0.13em] text-[#9c7959] sm:grid-cols-[76px_minmax(0,1fr)_170px]">
               <div>#</div>
               <div>Coffee Shop</div>
-              <div className="text-right">Iced Americano</div>
+              <div className="text-right">
+                Iced Americano
+              </div>
             </div>
 
             {sortedShops.map((shop, index) => {
-              const formattedDate = formatObservedDate(shop.observedDate);
+              const formattedDate =
+                formatObservedDate(shop.observedDate);
 
               return (
                 <div
@@ -532,7 +593,10 @@ export default async function Home() {
                         '"Segoe Print", "Bradley Hand", "Comic Sans MS", cursive',
                     }}
                   >
-                    {String(index + 1).padStart(2, "0")}
+                    {String(index + 1).padStart(
+                      2,
+                      "0"
+                    )}
                   </div>
 
                   <div className="min-w-0">
@@ -540,7 +604,8 @@ export default async function Home() {
                       <span
                         className="text-[20px] text-[#dfc7a8] sm:text-[22px]"
                         style={{
-                          fontFamily: 'Georgia, "Times New Roman", serif',
+                          fontFamily:
+                            'Georgia, "Times New Roman", serif',
                         }}
                       >
                         {shop.name}
@@ -569,7 +634,8 @@ export default async function Home() {
                   <div
                     className="text-right text-[22px] tracking-[0.04em] text-[#e6cfaf]"
                     style={{
-                      fontFamily: 'Georgia, "Times New Roman", serif',
+                      fontFamily:
+                        'Georgia, "Times New Roman", serif',
                     }}
                   >
                     ${shop.price.toFixed(2)}
@@ -588,6 +654,7 @@ export default async function Home() {
             viewBox="0 0 38 38"
             className="mt-0.5 h-8 w-8 shrink-0"
             fill="none"
+            aria-hidden="true"
           >
             <path
               d="M8 12h17l-2 18H11L8 12Z"
@@ -614,7 +681,8 @@ export default async function Home() {
                 '"Segoe Print", "Bradley Hand", "Comic Sans MS", cursive',
             }}
           >
-            Prices are manually collected and may include or exclude sales tax.
+            Prices are manually collected and may
+            include or exclude sales tax.
             <br />
             Prices and availability may change.
           </p>
