@@ -63,6 +63,7 @@ function AmericanoDrawing({
           strokeWidth="1.2"
           opacity=".8"
         />
+
         <path
           d="M34 75c15 3 35 3 51 0"
           strokeWidth=".9"
@@ -248,7 +249,7 @@ export default async function Home() {
         `,
       }}
     >
-      <div className="mx-auto w-full max-w-[1360px] px-5 pb-10 pt-6 sm:px-9 sm:pt-8 lg:px-14 xl:px-16">
+      <div className="mx-auto w-full max-w-[1360px] px-5 pb-28 pt-6 sm:px-9 sm:pb-10 sm:pt-8 lg:px-14 xl:px-16">
 
         <header>
           <div className="flex items-start justify-between gap-8">
@@ -637,6 +638,25 @@ export default async function Home() {
             Prices and availability may change.
           </p>
         </footer>
+      </div>
+
+      {/* STICKY MOBILE CTA */}
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#4a3323] bg-[#0d0907]/95 px-4 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.35)] backdrop-blur md:hidden">
+        <div className="mx-auto flex max-w-md items-center gap-3">
+          <a
+            href="/submit"
+            className="flex flex-1 items-center justify-center rounded-[10px] border border-[#b87438] bg-[#2c190e] px-5 py-3.5 text-[13px] font-bold uppercase tracking-[0.14em] text-[#e9bc84] shadow-[0_8px_20px_rgba(0,0,0,0.25)] active:scale-[0.99]"
+          >
+            + Submit a Price
+          </a>
+
+          <a
+            href="/admin/login"
+            className="rounded-[10px] border border-[#3d2b20] bg-[#120d09] px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-[#7f624d]"
+          >
+            Admin
+          </a>
+        </div>
       </div>
     </main>
   );
