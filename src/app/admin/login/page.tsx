@@ -63,7 +63,6 @@ function AmericanoDrawing({
           strokeWidth="1.2"
           opacity=".8"
         />
-
         <path
           d="M34 75c15 3 35 3 51 0"
           strokeWidth=".9"
@@ -305,38 +304,6 @@ export default async function Home() {
               </a>
             </nav>
           </div>
-
-          <div className="mt-7 md:hidden">
-            <a
-              href="/submit"
-              className="flex w-full items-center justify-center rounded-[10px] border border-[#a86934] bg-[#29180e] px-5 py-4 text-[13px] font-bold uppercase tracking-[0.15em] text-[#e6b981] shadow-[0_10px_25px_rgba(0,0,0,0.22)] transition active:scale-[0.99]"
-            >
-              + Submit a Price
-            </a>
-
-            <div className="mt-3 grid grid-cols-3 overflow-hidden rounded-[9px] border border-[#3e2d20] bg-[#100c09]">
-              <a
-                href="#about"
-                className="border-r border-[#3e2d20] px-2 py-3 text-center text-[11px] uppercase tracking-[0.1em] text-[#a98767]"
-              >
-                About
-              </a>
-
-              <a
-                href="#methodology"
-                className="border-r border-[#3e2d20] px-2 py-3 text-center text-[11px] uppercase tracking-[0.1em] text-[#a98767]"
-              >
-                Method
-              </a>
-
-              <a
-                href="/admin/login"
-                className="px-2 py-3 text-center text-[11px] uppercase tracking-[0.1em] text-[#705642]"
-              >
-                Admin
-              </a>
-            </div>
-          </div>
         </header>
 
         <section className="mt-10 grid gap-9 sm:mt-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
@@ -360,6 +327,22 @@ export default async function Home() {
               Tracking the price of an iced Americano across the
               neighborhood.
             </p>
+
+            <div className="mt-7 flex flex-wrap gap-3">
+              <a
+                href="/submit"
+                className="inline-flex items-center justify-center rounded-[10px] border border-[#b87438] bg-[#2c190e] px-5 py-3.5 text-[13px] font-bold uppercase tracking-[0.14em] text-[#e9bc84] shadow-[0_8px_20px_rgba(0,0,0,0.25)] transition hover:-translate-y-0.5 hover:border-[#d58b44] hover:bg-[#351f11]"
+              >
+                + Submit a Price
+              </a>
+
+              <a
+                href="/admin/login"
+                className="inline-flex items-center justify-center rounded-[10px] border border-[#3d2b20] bg-[#120d09] px-5 py-3.5 text-[12px] uppercase tracking-[0.12em] text-[#7f624d] transition hover:border-[#6c4a33] hover:text-[#b38a69]"
+              >
+                Admin
+              </a>
+            </div>
           </div>
 
           <div
@@ -397,18 +380,7 @@ export default async function Home() {
 
         {cheapest && mostExpensive && (
           <section className="mt-9 grid gap-4 sm:mt-10 md:grid-cols-3 md:gap-5">
-            <div
-              className="
-                group relative rounded-[15px] border border-[#76502d]
-                bg-[linear-gradient(135deg,#21170f_0%,#18110c_100%)]
-                px-6 py-6 sm:px-8 sm:py-7
-                shadow-[0_10px_34px_rgba(0,0,0,0.28)]
-                transition-all duration-300 ease-out
-                hover:-translate-y-1.5
-                hover:border-[#b87132]
-                hover:shadow-[0_0_0_1px_rgba(190,111,43,0.35),0_18px_42px_rgba(133,69,23,0.28)]
-              "
-            >
+            <div className="group relative rounded-[15px] border border-[#76502d] bg-[linear-gradient(135deg,#21170f_0%,#18110c_100%)] px-6 py-6 shadow-[0_10px_34px_rgba(0,0,0,0.28)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[#b87132] hover:shadow-[0_0_0_1px_rgba(190,111,43,0.35),0_18px_42px_rgba(133,69,23,0.28)] sm:px-8 sm:py-7">
               <div className="flex items-start justify-between">
                 <p className="text-[13px] font-bold uppercase tracking-[0.13em] text-[#d68439] sm:text-[14px]">
                   Average
@@ -433,18 +405,7 @@ export default async function Home() {
               </p>
             </div>
 
-            <div
-              className="
-                group rounded-[15px] border border-[#4e3927]
-                bg-[linear-gradient(135deg,#19120d_0%,#15100c_100%)]
-                px-6 py-6 sm:px-8 sm:py-7
-                shadow-[0_10px_30px_rgba(0,0,0,0.25)]
-                transition-all duration-300 ease-out
-                hover:-translate-y-1.5
-                hover:border-[#8a5a31]
-                hover:shadow-[0_0_0_1px_rgba(150,91,44,0.22),0_18px_38px_rgba(104,57,24,0.22)]
-              "
-            >
+            <div className="group rounded-[15px] border border-[#4e3927] bg-[linear-gradient(135deg,#19120d_0%,#15100c_100%)] px-6 py-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[#8a5a31] hover:shadow-[0_0_0_1px_rgba(150,91,44,0.22),0_18px_38px_rgba(104,57,24,0.22)] sm:px-8 sm:py-7">
               <div className="flex items-start justify-between">
                 <p className="text-[13px] font-bold uppercase tracking-[0.13em] text-[#d68439] sm:text-[14px]">
                   Cheapest
@@ -469,18 +430,7 @@ export default async function Home() {
               </p>
             </div>
 
-            <div
-              className="
-                group rounded-[15px] border border-[#4e3927]
-                bg-[linear-gradient(135deg,#19120d_0%,#15100c_100%)]
-                px-6 py-6 sm:px-8 sm:py-7
-                shadow-[0_10px_30px_rgba(0,0,0,0.25)]
-                transition-all duration-300 ease-out
-                hover:-translate-y-1.5
-                hover:border-[#8a5a31]
-                hover:shadow-[0_0_0_1px_rgba(150,91,44,0.22),0_18px_38px_rgba(104,57,24,0.22)]
-              "
-            >
+            <div className="group rounded-[15px] border border-[#4e3927] bg-[linear-gradient(135deg,#19120d_0%,#15100c_100%)] px-6 py-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[#8a5a31] hover:shadow-[0_0_0_1px_rgba(150,91,44,0.22),0_18px_38px_rgba(104,57,24,0.22)] sm:px-8 sm:py-7">
               <div className="flex items-start justify-between">
                 <p className="text-[13px] font-bold uppercase tracking-[0.13em] text-[#d68439] sm:text-[14px]">
                   Most Expensive
@@ -640,7 +590,6 @@ export default async function Home() {
         </footer>
       </div>
 
-      {/* STICKY MOBILE CTA */}
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#4a3323] bg-[#0d0907]/95 px-4 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.35)] backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-md items-center gap-3">
           <a
