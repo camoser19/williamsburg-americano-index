@@ -17,12 +17,21 @@ type ShopRow = {
   shops: RelatedShop | RelatedShop[] | null;
 };
 
+type PriceHistoryItem = {
+  id: number;
+  price: number;
+  observedDate: string | null;
+  taxStatus: string | null;
+  createdAt: string;
+};
+
 type CurrentShop = {
   id: number;
   name: string;
   price: number;
   observedDate: string | null;
   note: string;
+  history: PriceHistoryItem[];
 };
 
 function AmericanoDrawing({
@@ -46,7 +55,11 @@ function AmericanoDrawing({
         <path d="M78 9 68 55" strokeWidth="2.1" />
         <path d="m77 9 5-3" strokeWidth="1.2" />
 
-        <path d="M25 34c13-5 48-6 68 0" strokeWidth="1.8" />
+        <path
+          d="M25 34c13-5 48-6 68 0"
+          strokeWidth="1.8"
+        />
+
         <path
           d="M27 38c16 3 48 3 64-1"
           strokeWidth="1.1"
@@ -74,23 +87,49 @@ function AmericanoDrawing({
           d="m40 53 12-7 11 10-10 12-14-5Z"
           strokeWidth="1.4"
         />
+
         <path
           d="m61 49 13-5 10 10-6 12-14-3Z"
           strokeWidth="1.4"
         />
+
         <path
           d="m43 72 13-4 10 11-9 12-13-7Z"
           strokeWidth="1.3"
         />
+
         <path
           d="m65 70 13-3 7 12-9 10-12-7Z"
           strokeWidth="1.3"
         />
 
-        <circle cx="45" cy="99" r="2.4" strokeWidth=".9" />
-        <circle cx="68" cy="104" r="1.8" strokeWidth=".9" />
-        <circle cx="53" cy="114" r="1.5" strokeWidth=".8" />
-        <circle cx="76" cy="94" r="1.2" strokeWidth=".8" />
+        <circle
+          cx="45"
+          cy="99"
+          r="2.4"
+          strokeWidth=".9"
+        />
+
+        <circle
+          cx="68"
+          cy="104"
+          r="1.8"
+          strokeWidth=".9"
+        />
+
+        <circle
+          cx="53"
+          cy="114"
+          r="1.5"
+          strokeWidth=".8"
+        />
+
+        <circle
+          cx="76"
+          cy="94"
+          r="1.2"
+          strokeWidth=".8"
+        />
 
         <path
           d="M38 119c10 3 30 4 44 0"
@@ -184,19 +223,34 @@ function StarIcon() {
   );
 }
 
-function formatObservedDate(date: string | null) {
+function formatObservedDate(
+  date: string | null
+) {
   if (!date) {
     return null;
   }
 
-  return new Date(`${date}T12:00:00`).toLocaleDateString(
-    "en-US",
-    {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }
-  );
+  return new Date(
+    `${date}T12:00:00`
+  ).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatTaxStatus(
+  taxStatus: string | null
+) {
+  if (taxStatus === "included") {
+    return "Tax included";
+  }
+
+  if (taxStatus === "excluded") {
+    return "Before tax";
+  }
+
+  return "Tax unknown";
 }
 
 function getRelatedShop(
@@ -242,54 +296,87 @@ export default async function Home() {
     );
   }
 
-  const rows = (data ?? []) as unknown as ShopRow[];
+  const rows =
+    (data ?? []) as unknown as ShopRow[];
 
-  const latestByShop = new Map<
-    number,
-    CurrentShop
-  >();
+  const shopMap =
+    new Map<number, CurrentShop>();
 
   for (const row of rows) {
-    const shop = getRelatedShop(row.shops);
+    const shop =
+      getRelatedShop(row.shops);
 
-    if (!shop || latestByShop.has(shop.id)) {
+    if (!shop) {
       continue;
     }
 
-    latestByShop.set(shop.id, {
+    const historyItem: PriceHistoryItem = {
+      id: row.id,
+      price: Number(row.price),
+      observedDate:
+        row.observed_date,
+      taxStatus:
+        row.tax_status,
+      createdAt:
+        row.created_at,
+    };
+
+    const existing =
+      shopMap.get(shop.id);
+
+    if (existing) {
+      existing.history.push(
+        historyItem
+      );
+
+      continue;
+    }
+
+    shopMap.set(shop.id, {
       id: shop.id,
       name: shop.name,
       price: Number(row.price),
-      observedDate: row.observed_date,
+      observedDate:
+        row.observed_date,
       note:
         row.tax_status === "included"
           ? "Tax included"
           : row.tax_status === "excluded"
             ? "Before tax"
             : "",
+      history: [
+        historyItem,
+      ],
     });
   }
 
-  const shops = Array.from(
-    latestByShop.values()
-  );
+  const shops =
+    Array.from(
+      shopMap.values()
+    );
 
-  const sortedShops = [...shops].sort(
-    (a, b) => a.price - b.price
-  );
+  const sortedShops =
+    [...shops].sort(
+      (a, b) =>
+        a.price - b.price
+    );
 
   const average =
     shops.length > 0
       ? shops.reduce(
-          (sum, shop) => sum + shop.price,
+          (sum, shop) =>
+            sum + shop.price,
           0
         ) / shops.length
       : 0;
 
-  const cheapest = sortedShops[0];
+  const cheapest =
+    sortedShops[0];
 
   const mostExpensive =
-    sortedShops[sortedShops.length - 1];
+    sortedShops[
+      sortedShops.length - 1
+    ];
 
   return (
     <main
@@ -384,11 +471,10 @@ export default async function Home() {
             </h1>
 
             <p className="mt-5 max-w-[560px] text-[18px] leading-[1.5] text-[#ccb18d] sm:mt-6 sm:text-[20px]">
-              Tracking the price of an iced
-              Americano across the neighborhood.
+              Tracking the price of an iced Americano
+              across the neighborhood.
             </p>
 
-            {/* ALWAYS VISIBLE CTA */}
             <div className="mt-7 flex flex-wrap gap-3">
               <a
                 href="/submit"
@@ -428,13 +514,13 @@ export default async function Home() {
 
               <div className="text-[15px] leading-[1.6] text-[#cdb18d] sm:text-[17px] sm:leading-[1.65]">
                 <p>
-                  Espresso shots diluted with cold
-                  water and poured over ice.
+                  Espresso shots diluted with cold water
+                  and poured over ice.
                 </p>
 
                 <p className="mt-2">
-                  No milk. No foam. Just coffee,
-                  water, and ice.
+                  No milk. No foam. Just coffee, water,
+                  and ice.
                 </p>
               </div>
             </div>
@@ -442,89 +528,91 @@ export default async function Home() {
         </section>
 
         {/* STAT CARDS */}
-        {cheapest && mostExpensive && (
-          <section className="mt-9 grid gap-4 sm:mt-10 md:grid-cols-3 md:gap-5">
-            <div className="group relative rounded-[15px] border border-[#76502d] bg-[linear-gradient(135deg,#21170f_0%,#18110c_100%)] px-6 py-6 shadow-[0_10px_34px_rgba(0,0,0,0.28)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[#b87132] hover:shadow-[0_0_0_1px_rgba(190,111,43,0.35),0_18px_42px_rgba(133,69,23,0.28)] sm:px-8 sm:py-7">
-              <div className="flex items-start justify-between">
-                <p className="text-[13px] font-bold uppercase tracking-[0.13em] text-[#d68439] sm:text-[14px]">
-                  Average
+        {cheapest &&
+          mostExpensive && (
+            <section className="mt-9 grid gap-4 sm:mt-10 md:grid-cols-3 md:gap-5">
+
+              <div className="group relative rounded-[15px] border border-[#76502d] bg-[linear-gradient(135deg,#21170f_0%,#18110c_100%)] px-6 py-6 shadow-[0_10px_34px_rgba(0,0,0,0.28)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[#b87132] hover:shadow-[0_0_0_1px_rgba(190,111,43,0.35),0_18px_42px_rgba(133,69,23,0.28)] sm:px-8 sm:py-7">
+                <div className="flex items-start justify-between">
+                  <p className="text-[13px] font-bold uppercase tracking-[0.13em] text-[#d68439] sm:text-[14px]">
+                    Average
+                  </p>
+
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#9b632f] text-[#c47a35] sm:h-12 sm:w-12">
+                    <TrendIcon />
+                  </div>
+                </div>
+
+                <p
+                  className="mt-2 text-[53px] leading-none tracking-[-0.035em] text-[#ead4b5] sm:text-[58px]"
+                  style={{
+                    fontFamily:
+                      'Georgia, "Times New Roman", serif',
+                  }}
+                >
+                  ${average.toFixed(2)}
                 </p>
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#9b632f] text-[#c47a35] sm:h-12 sm:w-12">
-                  <TrendIcon />
-                </div>
+                <p className="mt-4 text-[15px] text-[#c4a681] sm:mt-5 sm:text-[16px]">
+                  Based on {shops.length} locations
+                </p>
               </div>
 
-              <p
-                className="mt-2 text-[53px] leading-none tracking-[-0.035em] text-[#ead4b5] sm:text-[58px]"
-                style={{
-                  fontFamily:
-                    'Georgia, "Times New Roman", serif',
-                }}
-              >
-                ${average.toFixed(2)}
-              </p>
+              <div className="group rounded-[15px] border border-[#4e3927] bg-[linear-gradient(135deg,#19120d_0%,#15100c_100%)] px-6 py-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[#8a5a31] hover:shadow-[0_0_0_1px_rgba(150,91,44,0.22),0_18px_38px_rgba(104,57,24,0.22)] sm:px-8 sm:py-7">
+                <div className="flex items-start justify-between">
+                  <p className="text-[13px] font-bold uppercase tracking-[0.13em] text-[#d68439] sm:text-[14px]">
+                    Cheapest
+                  </p>
 
-              <p className="mt-4 text-[15px] text-[#c4a681] sm:mt-5 sm:text-[16px]">
-                Based on {shops.length} locations
-              </p>
-            </div>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#80522d] text-[#bc7333] sm:h-12 sm:w-12">
+                    <TagIcon />
+                  </div>
+                </div>
 
-            <div className="group rounded-[15px] border border-[#4e3927] bg-[linear-gradient(135deg,#19120d_0%,#15100c_100%)] px-6 py-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[#8a5a31] hover:shadow-[0_0_0_1px_rgba(150,91,44,0.22),0_18px_38px_rgba(104,57,24,0.22)] sm:px-8 sm:py-7">
-              <div className="flex items-start justify-between">
-                <p className="text-[13px] font-bold uppercase tracking-[0.13em] text-[#d68439] sm:text-[14px]">
-                  Cheapest
+                <p
+                  className="mt-2 text-[53px] leading-none tracking-[-0.035em] text-[#ead4b5] sm:text-[58px]"
+                  style={{
+                    fontFamily:
+                      'Georgia, "Times New Roman", serif',
+                  }}
+                >
+                  ${cheapest.price.toFixed(2)}
                 </p>
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#80522d] text-[#bc7333] sm:h-12 sm:w-12">
-                  <TagIcon />
-                </div>
+                <p className="mt-4 text-[15px] text-[#c4a681] sm:mt-5 sm:text-[16px]">
+                  {cheapest.name}
+                </p>
               </div>
 
-              <p
-                className="mt-2 text-[53px] leading-none tracking-[-0.035em] text-[#ead4b5] sm:text-[58px]"
-                style={{
-                  fontFamily:
-                    'Georgia, "Times New Roman", serif',
-                }}
-              >
-                ${cheapest.price.toFixed(2)}
-              </p>
+              <div className="group rounded-[15px] border border-[#4e3927] bg-[linear-gradient(135deg,#19120d_0%,#15100c_100%)] px-6 py-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[#8a5a31] hover:shadow-[0_0_0_1px_rgba(150,91,44,0.22),0_18px_38px_rgba(104,57,24,0.22)] sm:px-8 sm:py-7">
+                <div className="flex items-start justify-between">
+                  <p className="text-[13px] font-bold uppercase tracking-[0.13em] text-[#d68439] sm:text-[14px]">
+                    Most Expensive
+                  </p>
 
-              <p className="mt-4 text-[15px] text-[#c4a681] sm:mt-5 sm:text-[16px]">
-                {cheapest.name}
-              </p>
-            </div>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#80522d] text-[#bc7333] sm:h-12 sm:w-12">
+                    <StarIcon />
+                  </div>
+                </div>
 
-            <div className="group rounded-[15px] border border-[#4e3927] bg-[linear-gradient(135deg,#19120d_0%,#15100c_100%)] px-6 py-6 shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[#8a5a31] hover:shadow-[0_0_0_1px_rgba(150,91,44,0.22),0_18px_38px_rgba(104,57,24,0.22)] sm:px-8 sm:py-7">
-              <div className="flex items-start justify-between">
-                <p className="text-[13px] font-bold uppercase tracking-[0.13em] text-[#d68439] sm:text-[14px]">
-                  Most Expensive
+                <p
+                  className="mt-2 text-[53px] leading-none tracking-[-0.035em] text-[#ead4b5] sm:text-[58px]"
+                  style={{
+                    fontFamily:
+                      'Georgia, "Times New Roman", serif',
+                  }}
+                >
+                  ${mostExpensive.price.toFixed(2)}
                 </p>
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[#80522d] text-[#bc7333] sm:h-12 sm:w-12">
-                  <StarIcon />
-                </div>
+                <p className="mt-4 text-[15px] text-[#c4a681] sm:mt-5 sm:text-[16px]">
+                  {mostExpensive.name}
+                </p>
               </div>
+            </section>
+          )}
 
-              <p
-                className="mt-2 text-[53px] leading-none tracking-[-0.035em] text-[#ead4b5] sm:text-[58px]"
-                style={{
-                  fontFamily:
-                    'Georgia, "Times New Roman", serif',
-                }}
-              >
-                ${mostExpensive.price.toFixed(2)}
-              </p>
-
-              <p className="mt-4 text-[15px] text-[#c4a681] sm:mt-5 sm:text-[16px]">
-                {mostExpensive.name}
-              </p>
-            </div>
-          </section>
-        )}
-
-        {/* PRICES */}
+        {/* PRICE INDEX */}
         <section className="mt-10">
           <div className="mb-4 flex items-end justify-between">
             <div>
@@ -564,59 +652,149 @@ export default async function Home() {
                     shop.observedDate
                   );
 
+                const hasHistory =
+                  shop.history.length > 1;
+
                 return (
                   <div
                     key={shop.id}
-                    className="group grid grid-cols-[42px_minmax(0,1fr)_80px] items-center border-b border-[#302319] px-4 py-4 last:border-b-0 transition-colors duration-200 hover:bg-[#17100b] sm:grid-cols-[76px_minmax(0,1fr)_170px] sm:px-7"
+                    className="border-b border-[#302319] last:border-b-0"
                   >
-                    <div
-                      className="text-[16px] italic text-[#af7c4b] sm:text-[22px]"
-                      style={{
-                        fontFamily:
-                          '"Segoe Print", "Bradley Hand", "Comic Sans MS", cursive',
-                      }}
-                    >
-                      {String(index + 1).padStart(
-                        2,
-                        "0"
-                      )}
-                    </div>
+                    <div className="group grid grid-cols-[42px_minmax(0,1fr)_80px] items-center px-4 py-4 transition-colors duration-200 hover:bg-[#17100b] sm:grid-cols-[76px_minmax(0,1fr)_170px] sm:px-7">
 
-                    <div className="min-w-0 pr-2">
-                      <p
-                        className="text-[17px] leading-tight text-[#dfc7a8] sm:text-[22px]"
+                      <div
+                        className="text-[16px] italic text-[#af7c4b] sm:text-[22px]"
+                        style={{
+                          fontFamily:
+                            '"Segoe Print", "Bradley Hand", "Comic Sans MS", cursive',
+                        }}
+                      >
+                        {String(
+                          index + 1
+                        ).padStart(
+                          2,
+                          "0"
+                        )}
+                      </div>
+
+                      <div className="min-w-0 pr-2">
+                        <p
+                          className="text-[17px] leading-tight text-[#dfc7a8] sm:text-[22px]"
+                          style={{
+                            fontFamily:
+                              'Georgia, "Times New Roman", serif',
+                          }}
+                        >
+                          {shop.name}
+                        </p>
+
+                        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+
+                          {shop.note && (
+                            <span className="text-[11px] italic text-[#9e7048] sm:text-[13px]">
+                              {shop.note}
+                            </span>
+                          )}
+
+                          {formattedDate && (
+                            <span className="text-[10px] text-[#69513d] sm:text-[11px]">
+                              Checked{" "}
+                              {formattedDate}
+                            </span>
+                          )}
+
+                        </div>
+
+                        {hasHistory && (
+                          <details className="group/history mt-2">
+
+                            <summary className="cursor-pointer list-none text-[10px] font-semibold uppercase tracking-[0.1em] text-[#b87842] transition hover:text-[#d69b68] sm:text-[11px]">
+                              <span className="group-open/history:hidden">
+                                {shop.history.length} price checks · View history
+                              </span>
+
+                              <span className="hidden group-open/history:inline">
+                                Hide history
+                              </span>
+                            </summary>
+
+                            <div className="mt-3 overflow-hidden rounded-lg border border-[#35271d] bg-[#0c0907]">
+
+                              {shop.history.map(
+                                (
+                                  observation,
+                                  historyIndex
+                                ) => {
+                                  const historyDate =
+                                    formatObservedDate(
+                                      observation.observedDate
+                                    );
+
+                                  return (
+                                    <div
+                                      key={
+                                        observation.id
+                                      }
+                                      className="flex items-center justify-between gap-4 border-b border-[#302319] px-3 py-2.5 last:border-b-0"
+                                    >
+                                      <div>
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+
+                                          <span className="text-[11px] text-[#a98768]">
+                                            {historyDate ??
+                                              "Date unknown"}
+                                          </span>
+
+                                          {historyIndex ===
+                                            0 && (
+                                            <span className="rounded-full border border-[#5c3d26] bg-[#1b1009] px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.09em] text-[#c98548]">
+                                              Current
+                                            </span>
+                                          )}
+
+                                        </div>
+
+                                        <p className="mt-1 text-[10px] italic text-[#70543f]">
+                                          {formatTaxStatus(
+                                            observation.taxStatus
+                                          )}
+                                        </p>
+                                      </div>
+
+                                      <div
+                                        className="text-[15px] text-[#d8b98f]"
+                                        style={{
+                                          fontFamily:
+                                            'Georgia, "Times New Roman", serif',
+                                        }}
+                                      >
+                                        $
+                                        {observation.price.toFixed(
+                                          2
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                              )}
+
+                            </div>
+                          </details>
+                        )}
+                      </div>
+
+                      <div
+                        className="text-right text-[18px] tracking-[0.02em] text-[#e6cfaf] sm:text-[22px]"
                         style={{
                           fontFamily:
                             'Georgia, "Times New Roman", serif',
                         }}
                       >
-                        {shop.name}
-                      </p>
-
-                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
-                        {shop.note && (
-                          <span className="text-[11px] italic text-[#9e7048] sm:text-[13px]">
-                            {shop.note}
-                          </span>
-                        )}
-
-                        {formattedDate && (
-                          <span className="text-[10px] text-[#69513d] sm:text-[11px]">
-                            Checked{" "}
-                            {formattedDate}
-                          </span>
+                        $
+                        {shop.price.toFixed(
+                          2
                         )}
                       </div>
-                    </div>
-
-                    <div
-                      className="text-right text-[18px] tracking-[0.02em] text-[#e6cfaf] sm:text-[22px]"
-                      style={{
-                        fontFamily:
-                          'Georgia, "Times New Roman", serif',
-                      }}
-                    >
-                      ${shop.price.toFixed(2)}
                     </div>
                   </div>
                 );
@@ -674,6 +852,7 @@ export default async function Home() {
       {/* MOBILE STICKY CTA */}
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#4a3323] bg-[#0d0907]/95 px-4 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.35)] backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-md items-center gap-3">
+
           <a
             href="/submit"
             className="flex flex-1 items-center justify-center rounded-[10px] border border-[#b87438] bg-[#2c190e] px-5 py-3.5 text-[13px] font-bold uppercase tracking-[0.14em] text-[#e9bc84]"
@@ -687,6 +866,7 @@ export default async function Home() {
           >
             Admin
           </a>
+
         </div>
       </div>
     </main>
